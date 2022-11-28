@@ -1,26 +1,50 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { Message, MessageDocument } from './schema/message.schema';
 
 @Injectable()
 export class MessagesService {
-  create(createMessageDto: CreateMessageDto) {
-    return 'This action adds a new message';
+  constructor(
+    @InjectModel(Message.name) private messageModel: Model<MessageDocument>,
+  ) {}
+
+  async create(createMessageDto: CreateMessageDto): Promise<Message> {
+    let createMessage = new this.messageModel(createMessageDto);
+    return createMessage.save();
   }
 
-  findAll() {
-    return `This action returns all messages`;
+  async findAll(): Promise<Message[]> {
+    return this.messageModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
+  async findOne(id: string): Promise<Message> {
+    return this.messageModel.findOne({ id });
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
+  async update(id: string, updateMessageDto: UpdateMessageDto) {
+    return this.messageModel.updateOne({ id }, updateMessageDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+  async remove(id: string) {
+    return this.messageModel.deleteOne({ id });
+  }
+
+  async findMessageByMessageId(messageId: string): Promise<Message> {
+    return this.messageModel.findOne({ messageId }).exec();
+  }
+
+  async removeMessageByMessageId(messageId: string): Promise<any> {
+    return this.messageModel.deleteOne({ messageId });
+  }
+
+  async findMessageByRoomId(roomId:string): Promise<Message[]> {
+    return this.messageModel.find({ roomId }).exec();
+  }
+
+  async removeMessageByRoomId(roomId: string): Promise<any> {
+    return this.messageModel.deleteMany({ roomId });
   }
 }
